@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#123d2c">
+  <title>First Flag Football Practice</title>
+  <style>
+    :root {
+      --turf: #123d2c;
+      --turf-light: #1b6546;
+      --ink: #172033;
+      --muted: #667085;
+      --paper: #f6f5ef;
+      --card: #ffffff;
+      --line: #d9ddd7;
+      --orange: #f26722;
+      --orange-soft: #fff0e7;
+      --blue: #dceefa;
+      --shadow: 0 12px 35px rgba(23, 32, 51, .12);
+      --radius: 18px;
+      --font-ui: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--font-ui);
+      font-size: 16px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; }
+    button:focus-visible, textarea:focus-visible { outline: 3px solid #63b3ed; outline-offset: 3px; }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: max(28px, env(safe-area-inset-top)) 20px 28px;
+      color: #fff;
+      background:
+        linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,.12) 49.5% 50.5%, transparent 50.5%),
+        repeating-linear-gradient(0deg, transparent 0 46px, rgba(255,255,255,.08) 46px 48px),
+        var(--turf);
+    }
+    .hero::after {
+      content: "10  ·  20  ·  30  ·  40  ·  50";
+      position: absolute;
+      right: -48px;
+      bottom: 22px;
+      color: rgba(255,255,255,.12);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .22em;
+      transform: rotate(-90deg);
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
+    .eyebrow {
+      margin: 0 0 9px;
+      color: #c9f2d8;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 600px;
+      margin: 0;
+      font-size: clamp(32px, 10vw, 58px);
+      line-height: .96;
+      letter-spacing: -.055em;
+    }
+    .hero-copy { max-width: 560px; margin: 16px 0 0; color: #e5f3eb; font-size: 16px; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 19px; }
+    .meta-chip {
+      padding: 7px 10px;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .clock-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      color: #fff;
+      background: #101827;
+      box-shadow: 0 5px 18px rgba(0,0,0,.18);
+    }
+    .clock-inner {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      max-width: 760px;
+      min-height: 62px;
+      margin: 0 auto;
+      padding: 8px 16px;
+    }
+    .clock-label { color: #aab3c2; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .clock-value { margin-top: 1px; font-size: 22px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    .clock-actions { display: flex; gap: 7px; }
+    .action {
+      min-height: 40px;
+      padding: 0 13px;
+      border: 0;
+      border-radius: 10px;
+      color: #fff;
+      background: #364152;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .action.primary { color: #2b1306; background: #ff8b46; }
+
+    main { max-width: 760px; margin: 0 auto; padding: 24px 16px 90px; }
+    .section-title { margin: 0 0 4px; font-size: 26px; letter-spacing: -.035em; }
+    .section-intro { margin: 0 0 20px; color: var(--muted); }
+
+    .timeline { position: relative; display: grid; gap: 15px; }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      top: 20px;
+      bottom: 20px;
+      left: 24px;
+      width: 3px;
+      border-radius: 99px;
+      background: #b8c8be;
+    }
+    .drill {
+      position: relative;
+      display: grid;
+      grid-template-columns: 50px minmax(0, 1fr);
+      gap: 12px;
+      scroll-margin-top: 80px;
+    }
+    .yard {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      align-self: start;
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--paper);
+      border-radius: 50%;
+      color: #fff;
+      background: var(--turf-light);
+      box-shadow: 0 0 0 1px #8caa98;
+      font-size: 12px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .drill-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: 0 5px 18px rgba(23,32,51,.06);
+      transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+    }
+    .drill.current .drill-card {
+      border-color: var(--orange);
+      box-shadow: 0 10px 28px rgba(242,103,34,.16);
+      transform: translateY(-2px);
+    }
+    .drill.current .yard { color: #2b1306; background: #ff8b46; box-shadow: 0 0 0 1px var(--orange); }
+    .drill.done .drill-card { opacity: .68; }
+    .drill-head { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 16px 16px 12px; }
+    .time { margin: 0 0 3px; color: var(--orange); font-size: 12px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
+    .drill h3 { margin: 0; font-size: 20px; line-height: 1.12; letter-spacing: -.025em; }
+    .done-button {
+      align-self: start;
+      min-width: 54px;
+      min-height: 36px;
+      border: 1px solid #cfd6d1;
+      border-radius: 9px;
+      color: #405047;
+      background: #f8faf8;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .drill.done .done-button { color: #fff; border-color: var(--turf-light); background: var(--turf-light); }
+    .drill-body { padding: 0 16px 17px; }
+    .drill-body p { margin: 0 0 10px; }
+    .drill-body ul, .drill-body ol { margin: 8px 0 0; padding-left: 20px; }
+    .drill-body li + li { margin-top: 5px; }
+    .cue {
+      margin-top: 13px;
+      padding: 11px 12px;
+      border-left: 4px solid var(--orange);
+      border-radius: 0 10px 10px 0;
+      background: var(--orange-soft);
+      font-size: 14px;
+    }
+    .cue.blue { border-color: #4285a8; background: var(--blue); }
+    .cue strong { display: block; margin-bottom: 2px; }
+
+    .evaluation { margin-top: 34px; padding-top: 28px; border-top: 2px solid var(--ink); }
+    .score-key { display: flex; flex-wrap: wrap; gap: 7px; margin: 13px 0 16px; }
+    .score-key span { padding: 6px 9px; border-radius: 8px; background: #e8ebe6; font-size: 12px; font-weight: 800; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+    table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 12px; }
+    th, td { height: 39px; padding: 8px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-align: center; }
+    th { color: #fff; background: var(--turf); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+    th:first-child, td:first-child { position: sticky; left: 0; z-index: 1; min-width: 100px; text-align: left; }
+    td:first-child { background: #fff; }
+    tr:last-child td { border-bottom: 0; }
+    th:last-child, td:last-child { border-right: 0; }
+    .roles { margin: 13px 0 0; color: var(--muted); font-size: 13px; }
+
+    .notes-label { display: block; margin: 24px 0 8px; font-size: 14px; font-weight: 900; }
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      color: var(--ink);
+      background: #fff;
+      font: inherit;
+    }
+    .footer-actions { display: flex; gap: 9px; margin-top: 14px; }
+    .footer-actions .action { color: #fff; background: var(--turf); }
+    .footer-actions .action.secondary { color: var(--ink); border: 1px solid var(--line); background: #fff; }
+
+    @media (min-width: 650px) {
+      .hero { padding-top: 50px; padding-bottom: 45px; }
+      main { padding-top: 34px; }
+      .timeline { gap: 18px; }
+      .drill { grid-template-columns: 64px minmax(0, 1fr); gap: 16px; }
+      .timeline::before { left: 31px; }
+      .yard { width: 64px; height: 64px; font-size: 14px; }
+      .drill-head { padding: 20px 20px 13px; }
+      .drill-body { padding: 0 20px 20px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .drill-card { transition: none; }
+    }
+
+    @media print {
+      @page { margin: .45in; }
+      body { color: #000; background: #fff; font-size: 10.5pt; }
+      .hero { padding: 16px 0; color: #000; background: #fff; border-bottom: 3px solid #000; }
+      .hero::after, .clock-bar, .done-button, .footer-actions, .notes-label, textarea { display: none !important; }
+      .hero-copy, .eyebrow { color: #000; }
+      .hero-meta { margin-top: 8px; }
+      .meta-chip { padding: 3px 7px; border-color: #777; background: #fff; }
+      h1 { font-size: 30pt; }
+      main { max-width: none; padding: 14px 0 0; }
+      .section-title { font-size: 17pt; }
+      .section-intro { margin-bottom: 10px; }
+      .timeline { display: block; }
+      .timeline::before { display: none; }
+      .drill { display: block; break-inside: avoid; margin-bottom: 9px; }
+      .yard { display: none; }
+      .drill-card, .drill.current .drill-card { border: 1px solid #888; box-shadow: none; transform: none; opacity: 1; }
+      .drill-head { padding: 8px 10px 5px; }
+      .drill-body { padding: 0 10px 8px; }
+      .drill h3 { font-size: 13pt; }
+      .drill-body p { margin-bottom: 4px; }
+      .drill-body ul, .drill-body ol { margin-top: 3px; }
+      .drill-body li + li { margin-top: 1px; }
+      .cue { margin-top: 6px; padding: 5px 7px; border: 1px solid #aaa; background: #fff; }
+      .evaluation { break-before: page; margin-top: 0; padding-top: 0; }
+      .score-key { margin: 6px 0 8px; }
+      .table-wrap { overflow: visible; border-radius: 0; }
+      table { min-width: 0; font-size: 8pt; }
+      th { color: #fff; background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      th, td { height: 31px; padding: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Practice 01 · Season kickoff</p>
+      <h1>Back on the field.</h1>
+      <p class="hero-copy">A fast-moving first practice to find the throwers, dependable hands, route runners, and defenders—then see who can read the play cards under pressure.</p>
+      <div class="hero-meta" aria-label="Practice details">
+        <span class="meta-chip">4th grade</span>
+        <span class="meta-chip">90 minutes</span>
+        <span class="meta-chip">No flags: two-hand touch</span>
+        <span class="meta-chip">Water every 20 minutes</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="clock-bar">
+    <div class="clock-inner">
+      <div>
+        <div class="clock-label" id="clockLabel">Practice clock</div>
+        <div class="clock-value" id="clockValue">Ready</div>
+      </div>
+      <div class="clock-actions">
+        <button class="action primary" id="startButton" type="button">Start</button>
+        <button class="action" id="resetButton" type="button">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <h2 class="section-title">The practice plan</h2>
+    <p class="section-intro">Keep the lines short, keep the ball moving, and make quick notes instead of stopping every rep to coach.</p>
+
+    <div class="timeline" id="timeline">
+      <article class="drill" data-start="0" data-end="8">
+        <div class="yard">0:00</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:00–0:08 · 8 minutes</p><h3>Welcome + dynamic warmup</h3></div>
+            <button class="done-button" type="button" aria-label="Mark warmup done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Set the tone: hustle between drills, encourage teammates, and listen when a coach speaks.</p>
+            <ul>
+              <li>Easy jog, high knees, butt kicks</li>
+              <li>Side shuffle, backpedal, carioca</li>
+              <li>Walking lunges</li>
+              <li>Three progressive 15-yard accelerations</li>
+            </ul>
+            <div class="cue"><strong>No-flags rule</strong>Two-hand touch between the shoulders and waist. No diving, pushing, or unnecessary contact.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="8" data-end="18">
+        <div class="yard">0:08</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:08–0:18 · 10 minutes</p><h3>Movement + conditioning circuit</h3></div>
+            <button class="done-button" type="button" aria-label="Mark conditioning done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Set four cones in a 10–15-yard square. Run three or four short rounds with about 30 seconds of recovery.</p>
+            <ol>
+              <li>Sprint out, backpedal back</li>
+              <li>Shuffle right and left</li>
+              <li>Sprint, plant, and change direction</li>
+              <li>Ball-carry relay with a clean handoff</li>
+            </ol>
+            <div class="cue blue"><strong>Watch for</strong>Effort, speed, balance, coordination, and who naturally competes.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="18" data-end="30">
+        <div class="yard">0:18</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:18–0:30 · 12 minutes</p><h3>Partner throwing + catching</h3></div>
+            <button class="done-button" type="button" aria-label="Mark partner throwing done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Pair players 5–7 yards apart. Increase the distance for players who are comfortable.</p>
+            <ul>
+              <li>Five chest-level throws</li>
+              <li>Five throws to each side</li>
+              <li>Five catches moving forward</li>
+              <li>Five catches moving sideways</li>
+            </ul>
+            <div class="cue"><strong>Coach it quickly</strong>Show a target. Step toward the throw. Watch the ball into the hands. Secure it before turning upfield.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="30" data-end="43">
+        <div class="yard">0:30</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:30–0:43 · 13 minutes</p><h3>QB + receiver evaluation</h3></div>
+            <button class="done-button" type="button" aria-label="Mark quarterback evaluation done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Use two passing lines. Everyone gets several turns at quarterback and receiver.</p>
+            <ul>
+              <li>Quick slant</li>
+              <li>Five-yard out</li>
+              <li>Short curl</li>
+              <li>Go route</li>
+            </ul>
+            <div class="cue blue"><strong>Evaluate</strong>Accuracy, arm strength, decision speed, catching consistency, route running, and adjustment to the ball.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="43" data-end="53">
+        <div class="yard">0:43</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:43–0:53 · 10 minutes</p><h3>Man-coverage challenge</h3></div>
+            <button class="done-button" type="button" aria-label="Mark man coverage done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Pair one receiver with one defender. Coach drops back 8–10 yards as quarterback. The receiver runs a real or invented route within 10–15 yards.</p>
+            <ul>
+              <li>Throw when the receiver separates—or challenge tight coverage</li>
+              <li>Rotate matchups regularly</li>
+              <li>Everyone plays receiver and defender</li>
+              <li>Catch = offense point; incompletion, breakup, or pick = defense point</li>
+              <li>Play to three, then switch partners</li>
+            </ul>
+            <div class="cue"><strong>Defensive cues</strong>Line up slightly inside. Watch the hips. Don’t guess at the first move. Stay close without grabbing. When the ball comes, get a hand up and play through the hands.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="53" data-end="65">
+        <div class="yard">0:53</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">0:53–1:05 · 12 minutes</p><h3>Play-card review</h3></div>
+            <button class="done-button" type="button" aria-label="Mark play card review done">Done</button>
+          </div>
+          <div class="drill-body">
+            <ol>
+              <li>Players identify their positions</li>
+              <li>Walk through the formation</li>
+              <li>Run it at half speed without defenders</li>
+              <li>Run it full speed against cones or coaches</li>
+              <li>Rotate positions and repeat</li>
+            </ol>
+            <div class="cue blue"><strong>Ask before the snap</strong>What position are you? Where do you line up? What is your first job? Where should the open space appear?</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="65" data-end="85">
+        <div class="yard">1:05</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">1:05–1:25 · 20 minutes</p><h3>Controlled scrimmage</h3></div>
+            <button class="done-button" type="button" aria-label="Mark scrimmage done">Done</button>
+          </div>
+          <div class="drill-body">
+            <ul>
+              <li>Six-play offensive possessions</li>
+              <li>Coach calls or shows the play card</li>
+              <li>Rotate quarterbacks and primary receivers</li>
+              <li>No rush for the first few possessions</li>
+              <li>Add a five-second rush count later</li>
+              <li>Include third-and-short, goal line, and one final-play situation</li>
+            </ul>
+            <div class="cue"><strong>Keep it moving</strong>Correct alignment or assignment mistakes briefly. Let ordinary incompletions and dropped passes go.</div>
+            <div class="cue blue"><strong>Watch for</strong>Communication, spacing, play-card knowledge, defensive awareness, response to mistakes, and decisions under pressure.</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="drill" data-start="85" data-end="90">
+        <div class="yard">1:25</div>
+        <div class="drill-card">
+          <div class="drill-head">
+            <div><p class="time">1:25–1:30 · 5 minutes</p><h3>Finish + team huddle</h3></div>
+            <button class="done-button" type="button" aria-label="Mark team huddle done">Done</button>
+          </div>
+          <div class="drill-body">
+            <p>Finish with a team relay or “catch it to leave practice” round.</p>
+            <ul>
+              <li>What did we do well?</li>
+              <li>What should we improve next practice?</li>
+              <li>Who saw a teammate do something helpful?</li>
+            </ul>
+            <div class="cue"><strong>Next practice</strong>Introduce flag-pulling technique and build toward more game-speed offense and defense.</div>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <section class="evaluation">
+      <h2 class="section-title">Quick evaluation</h2>
+      <p class="section-intro">Circle or enter a quick score. Don’t try to solve every position today.</p>
+      <div class="score-key"><span>3 · Consistent</span><span>2 · Developing</span><span>1 · Needs attention</span></div>
+      <div class="table-wrap" role="region" aria-label="Player evaluation table" tabindex="0">
+        <table>
+          <thead><tr><th>Player</th><th>Throw</th><th>Catch</th><th>Agility</th><th>Routes</th><th>Man D</th><th>Play cards</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="roles"><strong>Possible roles:</strong> QB, center, dependable hands, deep threat, runner, rusher, coverage defender, utility player.</p>
+
+      <label class="notes-label" for="coachNotes">Coach notes — saved on this phone</label>
+      <textarea id="coachNotes" placeholder="Matchups to try, possible QBs, dependable hands…"></textarea>
+      <div class="footer-actions">
+        <button class="action" id="printButton" type="button">Print practice plan</button>
+        <button class="action secondary" id="clearButton" type="button">Clear checks</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const KEY = 'flagPracticeV1';
+      const drills = [...document.querySelectorAll('.drill')];
+      const clockLabel = document.getElementById('clockLabel');
+      const clockValue = document.getElementById('clockValue');
+      const startButton = document.getElementById('startButton');
+      const resetButton = document.getElementById('resetButton');
+      const notes = document.getElementById('coachNotes');
+      let state = { startedAt: null, done: [], notes: '' };
+      let timer = null;
+
+      try { state = { ...state, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch (_) {}
+
+      const save = () => localStorage.setItem(KEY, JSON.stringify(state));
+      const pad = value => String(value).padStart(2, '0');
+
+      function updateClock() {
+        drills.forEach(drill => drill.classList.remove('current'));
+        if (!state.startedAt) {
+          clockLabel.textContent = 'Practice clock';
+          clockValue.textContent = 'Ready';
+          startButton.textContent = 'Start';
+          return;
+        }
+        const elapsedSeconds = Math.max(0, Math.floor((Date.now() - state.startedAt) / 1000));
+        const elapsedMinutes = elapsedSeconds / 60;
+        clockLabel.textContent = elapsedMinutes >= 90 ? 'Practice complete' : 'Practice elapsed';
+        clockValue.textContent = `${Math.floor(elapsedSeconds / 60)}:${pad(elapsedSeconds % 60)}`;
+        startButton.textContent = 'Running';
+        const current = drills.find(drill => elapsedMinutes >= Number(drill.dataset.start) && elapsedMinutes < Number(drill.dataset.end));
+        if (current) current.classList.add('current');
+      }
+
+      function start() {
+        if (!state.startedAt) {
+          state.startedAt = Date.now();
+          save();
+        }
+        updateClock();
+        clearInterval(timer);
+        timer = setInterval(updateClock, 1000);
+      }
+
+      function resetClock() {
+        state.startedAt = null;
+        save();
+        clearInterval(timer);
+        updateClock();
+      }
+
+      drills.forEach((drill, index) => {
+        if (state.done.includes(index)) drill.classList.add('done');
+        drill.querySelector('.done-button').addEventListener('click', () => {
+          drill.classList.toggle('done');
+          state.done = drills.map((item, i) => item.classList.contains('done') ? i : null).filter(i => i !== null);
+          save();
+        });
+      });
+
+      notes.value = state.notes || '';
+      notes.addEventListener('input', () => { state.notes = notes.value; save(); });
+      startButton.addEventListener('click', start);
+      resetButton.addEventListener('click', resetClock);
+      document.getElementById('printButton').addEventListener('click', () => window.print());
+      document.getElementById('clearButton').addEventListener('click', () => {
+        drills.forEach(drill => drill.classList.remove('done'));
+        state.done = [];
+        save();
+      });
+
+      updateClock();
+      if (state.startedAt) start();
+    })();
+  </script>
+</body>
+</html>
