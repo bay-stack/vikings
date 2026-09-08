@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#49206e"><meta name="referrer" content="no-referrer">
 <meta name="description" content="Build Vikings wristband cards and a coach’s play sheet from your play images.">
 <title>Vikings Playbook</title>
-<link rel="stylesheet" href="./style.css?v=20260908-text-size">
+<link rel="stylesheet" href="./style.css?v=20260908-simple-editor">
 </head>
 <body>
 <header class="topbar"><a class="brand" href="../"><span class="brand-mark">V</span><span>VIKINGS <b>PLAYBOOK</b></span></a><a class="practice-link" href="../">Practice plan ↗</a><span id="saveStatus" role="status">Starting playbook…</span><button id="cloudLink">Open on another device</button></header>
@@ -15,27 +15,24 @@
 <div id="notice" class="notice" role="status" hidden></div>
 <div class="workspace">
 <section class="board" aria-label="Wristband cards">
-<div class="board-heading"><div><h2>Build your wristband</h2><p>Select a play to edit. Drag plays to swap their positions.</p></div><button class="primary" id="upload">＋ Upload plays</button></div>
+<div class="board-heading"><div><h2>Build your wristband</h2><p>Select a play to edit. Click its preview to upload an image. Drag plays to swap their positions.</p></div></div>
 <div id="cards" class="cards"></div>
-<p class="upload-help">Upload your full 1200 × 1200 Canva export. Square uploads hide the bottom 326 pixels automatically. Keep the play drawing in the top 874 pixels. You can upload several at once.</p>
+<p class="upload-help">Use your full 1200 × 1200 Canva export with the drawing in the top 874 pixels. The fit is automatic. Choose several images at once or drop them onto a play; additional images go into empty slots.</p>
 </section>
 <aside class="editor" aria-label="Selected play editor">
 <div class="editor-heading"><p class="eyebrow" id="selectedPosition">OUTSIDE · SLOT 1</p><h2>Edit play</h2></div>
-<div id="editPreview" class="edit-preview"></div>
-<button id="replaceImage" class="wide">Upload image for this play</button>
+<div class="preview-wrap"><button id="editPreview" class="edit-preview" type="button" aria-label="Upload image for this play" title="Click to upload an image"></button><button id="clearImage" class="preview-clear" type="button" aria-label="Clear image" title="Clear image" hidden>×</button></div>
 <div class="fields"><label>Play number<input id="playNumber" maxlength="4" placeholder="1"></label><label>Banner line 1<input id="playName" maxlength="38" placeholder="e.g. Twins right"></label><label class="second-line">Banner line 2<input id="playLine2" maxlength="38" placeholder="e.g. Jet sweep"></label></div>
 <div class="text-size-control"><label for="textSize">Banner text size</label><select id="textSize" aria-describedby="textSizeHelp"><option value="auto">Auto fit</option></select><p id="textSizeHelp" class="help" role="status">Adjusts both text lines for this play.</p></div>
 <fieldset><legend>Banner color</legend><div id="swatches" class="swatches"></div></fieldset>
-<label class="image-label">Image format<select id="imageMode" aria-describedby="imageHelp"><option value="canva-326">Canva · hide bottom 326 px</option><option value="full">Whole image</option></select></label><p class="help image-help" id="imageHelp">For your 1200 × 1200 template. The top 874 pixels fit above the new banner.</p>
-<div id="overlayOptions"><label class="check"><input type="checkbox" id="overlay"> Put banner over the bottom of the image</label><p class="help">Off keeps the whole diagram above the banner.</p></div>
 <label class="move-label">Move to slot<select id="moveTo"></select></label>
-<div class="editor-actions"><button id="clearPlay" class="quiet-danger">Clear this play</button><button id="undo" disabled>Undo</button></div>
+<div class="editor-actions"><button id="undo" disabled>Undo</button></div>
 </aside>
 </div>
 <section class="print-panel" aria-labelledby="printTitle"><div><p class="eyebrow">FROM SCREEN TO SIDELINE</p><h2 id="printTitle">Print. Cut. Call the play.</h2><p>Three cards, each <strong>4 5/16″ × 2″</strong>. All 24 plays fit on one Letter sheet.</p><p class="print-tip">Print the PDF at <strong>Actual size / 100%</strong>. Measure the 1-inch ruler before cutting.</p></div><div class="print-buttons"><button class="primary" id="wristPdf">↓ Wristband PDF <small>3 cards · cut lines · Letter</small></button><button id="coachPdf">↓ Coach’s PDF <small>All 24 plays, enlarged · Letter</small></button></div></section>
 <footer>Vikings football <span>4 across × 2 down · 3 wristband windows</span></footer>
 </main>
-<input type="file" id="imagesInput" accept="image/png,image/jpeg,image/webp" multiple hidden><input type="file" id="replaceInput" accept="image/png,image/jpeg,image/webp" hidden><input type="file" id="backupInput" accept=".json,application/json" hidden>
+<input type="file" id="imagesInput" accept="image/png,image/jpeg,image/webp" multiple hidden><input type="file" id="backupInput" accept=".json,application/json" hidden>
 <dialog id="linkDialog"><form method="dialog"><button class="close" aria-label="Close">×</button><p class="eyebrow">TAKE YOUR PLAYBOOK WITH YOU</p><h2>Open on another device</h2><p>Save this private link to reopen these plays on another computer. Anyone with the link can view and edit all playbooks in your workspace.</p><input id="privateLink" readonly aria-label="Private playbook link"><button id="copyLink" type="button" class="primary">Copy private link</button><p id="copyStatus" role="status"></p></form></dialog>
-<script src="./vendor/jspdf.umd.min.js"></script><script type="module" src="./app.js?v=20260908-text-size"></script>
+<script src="./vendor/jspdf.umd.min.js"></script><script type="module" src="./app.js?v=20260908-simple-editor"></script>
 </body></html>
