@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#49206e"><meta name="referrer" content="no-referrer">
 <meta name="description" content="Build Vikings wristband cards and a coach’s play sheet from your play images.">
 <title>Vikings Playbook</title>
-<link rel="stylesheet" href="./style.css?v=20260908-canva-edge">
+<link rel="stylesheet" href="./style.css?v=20260908-text-size">
 </head>
 <body>
 <header class="topbar"><a class="brand" href="../"><span class="brand-mark">V</span><span>VIKINGS <b>PLAYBOOK</b></span></a><a class="practice-link" href="../">Practice plan ↗</a><span id="saveStatus" role="status">Starting playbook…</span><button id="cloudLink">Open on another device</button></header>
@@ -24,6 +24,7 @@
 <div id="editPreview" class="edit-preview"></div>
 <button id="replaceImage" class="wide">Upload image for this play</button>
 <div class="fields"><label>Play number<input id="playNumber" maxlength="4" placeholder="1"></label><label>Banner line 1<input id="playName" maxlength="38" placeholder="e.g. Twins right"></label><label class="second-line">Banner line 2<input id="playLine2" maxlength="38" placeholder="e.g. Jet sweep"></label></div>
+<div class="text-size-control"><label for="textSize">Banner text size</label><select id="textSize" aria-describedby="textSizeHelp"><option value="auto">Auto fit</option></select><p id="textSizeHelp" class="help" role="status">Adjusts both text lines for this play.</p></div>
 <fieldset><legend>Banner color</legend><div id="swatches" class="swatches"></div></fieldset>
 <label class="image-label">Image format<select id="imageMode" aria-describedby="imageHelp"><option value="canva-326">Canva · hide bottom 326 px</option><option value="full">Whole image</option></select></label><p class="help image-help" id="imageHelp">For your 1200 × 1200 template. The top 874 pixels fit above the new banner.</p>
 <div id="overlayOptions"><label class="check"><input type="checkbox" id="overlay"> Put banner over the bottom of the image</label><p class="help">Off keeps the whole diagram above the banner.</p></div>
@@ -36,5 +37,5 @@
 </main>
 <input type="file" id="imagesInput" accept="image/png,image/jpeg,image/webp" multiple hidden><input type="file" id="replaceInput" accept="image/png,image/jpeg,image/webp" hidden><input type="file" id="backupInput" accept=".json,application/json" hidden>
 <dialog id="linkDialog"><form method="dialog"><button class="close" aria-label="Close">×</button><p class="eyebrow">TAKE YOUR PLAYBOOK WITH YOU</p><h2>Open on another device</h2><p>Save this private link to reopen these plays on another computer. Anyone with the link can view and edit all playbooks in your workspace.</p><input id="privateLink" readonly aria-label="Private playbook link"><button id="copyLink" type="button" class="primary">Copy private link</button><p id="copyStatus" role="status"></p></form></dialog>
-<script src="./vendor/jspdf.umd.min.js"></script><script type="module" src="./app.js?v=20260908-canva-edge"></script>
+<script src="./vendor/jspdf.umd.min.js"></script><script type="module" src="./app.js?v=20260908-text-size"></script>
 </body></html>

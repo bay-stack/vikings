@@ -2,7 +2,8 @@ export const CARD_NAMES = ['Outside', 'Inside top', 'Inside bottom'];
 export const COLORS = ['#49206e','#172d49','#176247','#b92f3e','#f4c541','#252332'];
 export const GEOMETRY = Object.freeze({ pageWidth:612,pageHeight:792,cardWidth:310.5,cardHeight:144,cellWidth:77.625,cellHeight:72,cardX:150.75,cardY:[108,288,468],coachX:36,coachY:[100,322,544],coachWidth:540,coachHeight:198 });
 export const CANVA = Object.freeze({width:1200,height:1200,bannerHeight:326,playHeight:874});
-export function emptyPlay(i) { return { number:String(i+1),name:'',line2:'',color:COLORS[0],overlay:false,imageMode:'full',image:null }; }
+export const TEXT_SIZES = Object.freeze(Array.from({length:16},(_,i)=>4.5+i*.5));
+export function emptyPlay(i) { return { number:String(i+1),name:'',line2:'',textSize:null,color:COLORS[0],overlay:false,imageMode:'full',image:null }; }
 export function blankBook() { return {version:1,title:'Vikings · Game day',plays:Array.from({length:24},(_,i)=>emptyPlay(i))}; }
 export function validateBook(value) {
   if (!value || value.version!==1 || typeof value.title!=='string' || value.title.length>70 || !Array.isArray(value.plays) || value.plays.length!==24) throw Error('Choose a Vikings playbook backup with 24 play slots.');
@@ -10,8 +11,9 @@ export function validateBook(value) {
   return {version:1,title:value.title,plays:value.plays.map(p=>{
     if (!p || typeof p.number!=='string' || p.number.length>4 || typeof p.name!=='string' || p.name.length>38 || !/^#[0-9a-f]{6}$/i.test(p.color) || typeof p.overlay!=='boolean') throw Error('This playbook has an invalid play.');
     if ((p.line2!==undefined && (typeof p.line2!=='string' || p.line2.length>38)) || (p.imageMode!==undefined && !['full','canva-326'].includes(p.imageMode))) throw Error('This playbook has invalid banner or image settings.');
+    if (p.textSize!==undefined && p.textSize!==null && !TEXT_SIZES.includes(p.textSize)) throw Error('This playbook has an invalid text size.');
     if (p.image!==null && (typeof p.image!=='object' || typeof p.image.data!=='string' || !/^data:image\/(png|jpeg);base64,[a-zA-Z0-9+/]+=*$/.test(p.image.data) || p.image.data.length>360000 || !Number.isInteger(p.image.width) || !Number.isInteger(p.image.height) || p.image.width<1 || p.image.height<1 || p.image.width>1600 || p.image.height>1600)) throw Error('This playbook contains an unsupported image.');
-    return {number:p.number,name:p.name,line2:p.line2??'',color:p.color,overlay:p.overlay,imageMode:p.imageMode??'full',image:p.image ? {data:p.image.data,width:p.image.width,height:p.image.height} : null};
+    return {number:p.number,name:p.name,line2:p.line2??'',textSize:p.textSize??null,color:p.color,overlay:p.overlay,imageMode:p.imageMode??'full',image:p.image ? {data:p.image.data,width:p.image.width,height:p.image.height} : null};
   })};
 }
 export function contrastColor(hex) {

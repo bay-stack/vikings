@@ -1,10 +1,21 @@
-import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-canva-edge';
+import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-text-size';
+const ascii=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—·]/g,'-').replace(/[^\x20-\x7e]/g,'');
+// Use the same measured lines and point sizes in the editor and exported PDFs.
+export function layoutBannerText(p,w,h,kind,doc){
+  const bannerH=h*.2,available=w*.76-5,manual=p.textSize!=null;
+  let size=manual?p.textSize*(h/G.cellHeight):(kind==='wrist'?7:10);
+  doc.setFont('helvetica','bold');doc.setFontSize(size);
+  const name=ascii(p.name),line2=ascii(p.line2||'');
+  const getLines=()=>line2?[name,line2]:name?doc.splitTextToSize(name,available):[];let lines=getLines();
+  const overflows=()=>lines.length>2||(lines.length===1?size:lines.length*size*1.05)>bannerH-2||lines.some(line=>doc.getTextWidth(line)>available);
+  if(!manual){while(overflows()&&size>4.5){size-=.25;doc.setFontSize(size);lines=getLines();}}
+  return {lines,size,overflow:overflows(),baseline:bannerH/2-(lines.length-1)*size*.525+size*.34};
+}
 export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   if(!PDF) throw Error('The PDF tool did not load. Refresh the page and try again.');
   const doc=new PDF({unit:'pt',format:'letter',orientation:'portrait',precision:6,compress:true});
   doc.viewerPreferences({PrintScaling:'None'});
   doc.setProperties({title:book.title+' - '+(kind==='wrist'?'Wristband cards':'Coach sheet'),author:'Vikings Playbook'});
-  const ascii=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—·]/g,'-').replace(/[^\x20-\x7e]/g,'');
   doc.setFont('helvetica','bold');doc.setFontSize(19);doc.setTextColor('#301449');
   const title=ascii(book.title)||'Vikings Playbook';
   doc.text(doc.splitTextToSize(title,540).slice(0,2),36,40);
@@ -20,13 +31,9 @@ export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
     doc.setFillColor(p.color);doc.rect(x,y+h-bannerH,w,bannerH,'F');doc.setTextColor(contrastColor(p.color));
     doc.setFont('helvetica','bold');const num=ascii(p.number);let nf=kind==='wrist'?9:13;doc.setFontSize(nf);while(doc.getTextWidth(num)>w*.24-6&&nf>5){doc.setFontSize(--nf);}doc.text(num,x+3,y+h-bannerH/2+nf*.34);
     const numberWidth=w*.24;doc.setDrawColor(contrastColor(p.color));doc.setLineWidth(.25);doc.line(x+numberWidth-2,y+h-bannerH+3,x+numberWidth-2,y+h-3);
-    const name=ascii(p.name),line2=ascii(p.line2||''),available=w-numberWidth-5;let fs=kind==='wrist'?7:10;doc.setFontSize(fs);
-    const getLines=()=>line2?[name,line2]:doc.splitTextToSize(name,available);let lines=getLines();
-    const overflows=()=>lines.length>2||lines.length*fs*1.05>bannerH-2||lines.some(line=>doc.getTextWidth(line)>available);
-    while(overflows()&&fs>4.5){fs-=.25;doc.setFontSize(fs);lines=getLines();}
-    // Labels are capped in the editor; two measured lines remain inside the fixed banner.
-    if(overflows()){throw Error('Shorten the banner text on play '+p.number+' before printing.');}
-    doc.text(lines,x+numberWidth+1,y+h-bannerH/2-(lines.length-1)*fs*.525+fs*.34,{lineHeightFactor:1.05});
+    const label=layoutBannerText(p,w,h,kind,doc);
+    if(label.overflow){throw Error((p.textSize==null?'Shorten the banner text':'Choose a smaller text size or shorten the banner text')+' on play '+p.number+' before printing.');}
+    doc.text(label.lines,x+numberWidth+1,y+h-bannerH+label.baseline,{lineHeightFactor:1.05});
   }
   for(let group=0;group<3;group++){
     const wrist=kind==='wrist',x=wrist?G.cardX:G.coachX,y=(wrist?G.cardY:G.coachY)[group],w=wrist?G.cardWidth:G.coachWidth,h=wrist?G.cardHeight:G.coachHeight;

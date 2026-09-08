@@ -1,5 +1,5 @@
-import {blankBook,validateBook,emptyPlay,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,GEOMETRY as G} from './model.js?v=20260908-canva-edge';
-import {createPDF} from './pdf.js?v=20260908-canva-edge';
+import {blankBook,validateBook,emptyPlay,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,TEXT_SIZES,GEOMETRY as G} from './model.js?v=20260908-text-size';
+import {createPDF,layoutBannerText} from './pdf.js?v=20260908-text-size';
 import {rpc,draftStore,draftRead} from './cloud.js';
 const $=id=>document.getElementById(id);
 let book=blankBook(),selected=0,history=[],revision=0,dirty=false,serial=0,timer,saving=null,conflict=false,busy=false,initialized=false,dragFrom=null;
@@ -13,15 +13,26 @@ function bannerNumber(number){
   for(const [key,value] of Object.entries({x1:width-2,x2:width-2,y1:3,y2:height-3,stroke:'currentColor','stroke-width':.25}))divider.setAttribute(key,String(value));
   text.textContent=number;svg.append(text,divider);holder.append(svg);return holder;
 }
+let previewMetrics;
+function previewLabel(p){
+  const PDF=globalThis.jspdf?.jsPDF;if(!PDF)return null;
+  previewMetrics ||= new PDF({unit:'pt'});
+  return layoutBannerText(p,G.cellWidth,G.cellHeight,'wrist',previewMetrics);
+}
 function bannerWords(p){
-  if(!p.line2){const words=document.createElement('span');words.textContent=p.name;return words;}
+  const label=previewLabel(p);
+  if(!label){const words=document.createElement('span');words.textContent=[p.name,p.line2].filter(Boolean).join(' / ');return words;}
   const ns='http://www.w3.org/2000/svg',words=document.createElementNS(ns,'svg'),width=G.cellWidth*.76,height=G.cellHeight*.2;
-  words.classList.add('banner-two-lines');words.setAttribute('viewBox',`0 0 ${width} ${height}`);words.setAttribute('aria-hidden','true');
-  textMeasure.font='bold 7px Arial';const widest=Math.max(...[p.name,p.line2].map(line=>textMeasure.measureText(line).width));
-  const size=Math.floor(Math.min((height-2)/2.1,7,widest?7*(width-5)/widest:7)*4)/4;
-  for(const [i,line] of [p.name,p.line2].entries()){const text=document.createElementNS(ns,'text');text.setAttribute('x','1');text.setAttribute('y',String(height/2-size*.525+size*.34+i*size*1.05));text.setAttribute('font-family','Arial, sans-serif');text.setAttribute('font-size',String(size));text.setAttribute('font-weight','700');text.setAttribute('fill','currentColor');text.textContent=line;words.append(text);}
+  words.classList.add('banner-words');words.setAttribute('viewBox',`0 0 ${width} ${height}`);words.setAttribute('aria-hidden','true');
+  for(const [i,line] of label.lines.entries()){const text=document.createElementNS(ns,'text');text.setAttribute('x','1');text.setAttribute('y',String(label.baseline+i*label.size*1.05));text.setAttribute('font-family','Helvetica, Arial, sans-serif');text.setAttribute('font-size',String(label.size));text.setAttribute('font-weight','700');text.setAttribute('fill','currentColor');text.textContent=line;words.append(text);}
   return words;
 }
+function renderTextSizeHelp(){
+  const p=book.plays[selected],label=previewLabel(p),help=$('textSizeHelp');
+  help.classList.toggle('text-overflow',Boolean(label?.overflow));
+  help.textContent=label?.overflow?'Text does not fit. Choose a smaller size or shorten the words before printing.':p.textSize==null?'Auto fits the words inside the banner.':'Both lines use this size on wristbands. The coach sheet enlarges it.';
+}
+
 function status(text,error=false){$('saveStatus').textContent=text;$('saveStatus').dataset.state=error?'error':'ok';}
 function notice(text,actions=[]){$('notice').replaceChildren(document.createTextNode(text));for(const [label,fn] of actions){const b=document.createElement('button');b.textContent=label;b.onclick=()=>Promise.resolve(fn()).catch(report);$('notice').append(b);}$('notice').hidden=false;}
 function report(e){notice(e.message||'Something went wrong. Please try again.');}
@@ -38,8 +49,8 @@ function makeSlot(p,i,editable=true){
   return el;
 }
 function renderCards(){const groups=[];for(let g=0;g<3;g++){const section=document.createElement('div');section.className='wrist-group';const label=document.createElement('div');label.className='card-label';label.innerHTML=`<span class="card-index">0${g+1}</span><strong>${CARD_NAMES[g]}</strong><small>Plays ${g*8+1}–${g*8+8}</small>`;const grid=document.createElement('div');grid.className='wrist-card';grid.setAttribute('aria-label',CARD_NAMES[g]+' card');for(let i=0;i<8;i++)grid.append(makeSlot(book.plays[g*8+i],g*8+i));section.append(label,grid);groups.push(section);}$('cards').replaceChildren(...groups);}
-function renderPreview(){$('editPreview').replaceChildren(makeSlot(book.plays[selected],selected,false));}
-function renderEditor(){const p=book.plays[selected];$('selectedPosition').textContent=`${CARD_NAMES[Math.floor(selected/8)].toUpperCase()} · SLOT ${selected+1}`;$('playNumber').value=p.number;$('playName').value=p.name;$('playLine2').value=p.line2||'';$('imageMode').value=p.imageMode||'full';$('overlayOptions').hidden=p.imageMode==='canva-326';$('imageHelp').textContent=p.imageMode==='canva-326'?'For your 1200 × 1200 template. The top 874 pixels fit above the new banner.':'Shows the complete image. Choose Canva format to hide an existing 326-pixel banner.';$('overlay').checked=p.overlay;$('replaceImage').textContent=p.image?'Replace play image':'Upload image for this play';$('moveTo').value=selected;$('swatches').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===p.color)));renderPreview();}
+function renderPreview(){$('editPreview').replaceChildren(makeSlot(book.plays[selected],selected,false));renderTextSizeHelp();}
+function renderEditor(){const p=book.plays[selected];$('selectedPosition').textContent=`${CARD_NAMES[Math.floor(selected/8)].toUpperCase()} · SLOT ${selected+1}`;$('playNumber').value=p.number;$('playName').value=p.name;$('playLine2').value=p.line2||'';$('textSize').value=p.textSize==null?'auto':String(p.textSize);$('imageMode').value=p.imageMode||'full';$('overlayOptions').hidden=p.imageMode==='canva-326';$('imageHelp').textContent=p.imageMode==='canva-326'?'For your 1200 × 1200 template. The top 874 pixels fit above the new banner.':'Shows the complete image. Choose Canva format to hide an existing 326-pixel banner.';$('overlay').checked=p.overlay;$('replaceImage').textContent=p.image?'Replace play image':'Upload image for this play';$('moveTo').value=selected;$('swatches').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===p.color)));renderPreview();}
 function renderAll(){$('bookTitle').value=book.title;$('playCount').textContent=`${book.plays.filter(p=>p.image).length} / 24 plays`;renderCards();renderEditor();$('undo').disabled=!history.length;}
 function lock(value){busy=value;document.querySelectorAll('main button, main input, main select').forEach(el=>el.disabled=value);if(!value)$('undo').disabled=!history.length;$('notice').querySelectorAll('button').forEach(el=>el.disabled=false);}
 async function decodeFile(file){
@@ -93,6 +104,8 @@ function download(data,name,type){const url=URL.createObjectURL(new Blob([data],
 function filename(){return (book.title.replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'')||'vikings-playbook').slice(0,70);}
 $('upload').onclick=()=>$('imagesInput').click();$('replaceImage').onclick=()=>$('replaceInput').click();$('imagesInput').onchange=async e=>{await uploadFiles([...e.target.files]).catch(report);e.target.value='';};$('replaceInput').onchange=async e=>{await uploadFiles([...e.target.files],true).catch(report);e.target.value='';};
 for(const [id,prop] of [['playNumber','number'],['playName','name'],['playLine2','line2']]){$(id).addEventListener('focus',remember);$(id).oninput=e=>{book.plays[selected][prop]=e.target.value;changed();};}
+for(const size of TEXT_SIZES){const option=document.createElement('option');option.value=String(size);option.textContent=`${size} pt`;$('textSize').append(option);}
+$('textSize').onchange=e=>{remember();book.plays[selected].textSize=e.target.value==='auto'?null:Number(e.target.value);changed();};
 $('imageMode').onchange=e=>{remember();book.plays[selected].imageMode=e.target.value;changed();renderEditor();};
 $('bookTitle').addEventListener('focus',remember);$('bookTitle').oninput=e=>{book.title=e.target.value;changed();};$('overlay').onchange=e=>{remember();book.plays[selected].overlay=e.target.checked;changed();};
 for(const [i,color] of COLORS.entries()){const b=document.createElement('button');b.className='swatch';b.style.background=color;b.dataset.color=color;b.setAttribute('aria-label',['Purple','Navy','Green','Red','Gold','Black'][i]);b.onclick=()=>{remember();book.plays[selected].color=color;changed();renderEditor();};$('swatches').append(b);}
