@@ -1,4 +1,4 @@
-import { GEOMETRY as G,CARD_NAMES,contrastColor,fitImage } from './model.js';
+import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-canva';
 export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   if(!PDF) throw Error('The PDF tool did not load. Refresh the page and try again.');
   const doc=new PDF({unit:'pt',format:'letter',orientation:'portrait',precision:6,compress:true});
@@ -12,14 +12,20 @@ export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   doc.text(kind==='wrist'?'WRISTBAND CARDS  /  4 5/16 in x 2 in  /  PRINT AT 100%':'COACH SHEET  /  ALL 24 PLAYS',36,78);
   function play(p,x,y,w,h){
     const bannerH=h*.2;
-    if(p.image){const box=fitImage(p.image.width,p.image.height,x+2,y+2,w-4,h-(p.overlay?0:bannerH)-4);doc.addImage(p.image.data,p.image.data.startsWith('data:image/png')?'PNG':'JPEG',box.x,box.y,box.width,box.height,undefined,'FAST');}
+    if(p.image){
+      const box=imageLayout(p,w,h);
+      doc.saveGraphicsState();doc.rect(x+box.x,y+box.y,box.width,box.height,null);doc.clip();doc.discardPath();
+      doc.addImage(p.image.data,p.image.data.startsWith('data:image/png')?'PNG':'JPEG',x+box.x,y+box.y,box.width,box.fullHeight,undefined,'FAST');doc.restoreGraphicsState();
+    }
     doc.setFillColor(p.color);doc.rect(x,y+h-bannerH,w,bannerH,'F');doc.setTextColor(contrastColor(p.color));
     doc.setFont('helvetica','bold');const num=ascii(p.number);let nf=kind==='wrist'?9:13;doc.setFontSize(nf);while(doc.getTextWidth(num)>w*.24-6&&nf>5){doc.setFontSize(--nf);}doc.text(num,x+3,y+h-bannerH/2+nf*.34);
     const numberWidth=w*.24;doc.setDrawColor(contrastColor(p.color));doc.setLineWidth(.25);doc.line(x+numberWidth-2,y+h-bannerH+3,x+numberWidth-2,y+h-3);
-    const name=ascii(p.name);let fs=kind==='wrist'?7:10;doc.setFontSize(fs);let lines=doc.splitTextToSize(name,w-numberWidth-5);
-    while((lines.length>2||lines.length*fs*1.05>bannerH-2)&&fs>4.5){fs-=.25;doc.setFontSize(fs);lines=doc.splitTextToSize(name,w-numberWidth-5);}
+    const name=ascii(p.name),line2=ascii(p.line2||''),available=w-numberWidth-5;let fs=kind==='wrist'?7:10;doc.setFontSize(fs);
+    const getLines=()=>line2?[name,line2]:doc.splitTextToSize(name,available);let lines=getLines();
+    const overflows=()=>lines.length>2||lines.length*fs*1.05>bannerH-2||lines.some(line=>doc.getTextWidth(line)>available);
+    while(overflows()&&fs>4.5){fs-=.25;doc.setFontSize(fs);lines=getLines();}
     // Labels are capped in the editor; two measured lines remain inside the fixed banner.
-    if(lines.length>2){throw Error('Shorten the banner words on play '+p.number+' before printing.');}
+    if(overflows()){throw Error('Shorten the banner text on play '+p.number+' before printing.');}
     doc.text(lines,x+numberWidth+1,y+h-bannerH/2-(lines.length-1)*fs*.525+fs*.34,{lineHeightFactor:1.05});
   }
   for(let group=0;group<3;group++){

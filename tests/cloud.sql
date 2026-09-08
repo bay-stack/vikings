@@ -9,7 +9,13 @@ begin
  if result->>'revision'<>'1' then raise exception 'create failed'; end if;
  result:=public.vikings_load(repeat('a',64),'11111111-1111-4111-8111-111111111111');
  if result->'payload'<>b then raise exception 'round trip failed'; end if;
+ b:=jsonb_set(jsonb_set(b,'{plays,0,line2}','"Jet sweep"'),'{plays,0,imageMode}','"canva-326"');
  perform public.vikings_save(repeat('a',64),'11111111-1111-4111-8111-111111111111',b,1);
+ result:=public.vikings_load(repeat('a',64),'11111111-1111-4111-8111-111111111111');
+ if result->'payload'<>b then raise exception 'Canva and second-line round trip failed'; end if;
+ denied:=false;begin perform public.vikings_save(repeat('a',64),'11111111-1111-4111-8111-111111111111',jsonb_set(b,'{plays,0,line2}',to_jsonb(repeat('x',39))),2);exception when sqlstate 'PT400' then denied:=true;end;if not denied then raise exception 'oversized second line accepted';end if;
+ denied:=false;begin perform public.vikings_save(repeat('a',64),'11111111-1111-4111-8111-111111111111',jsonb_set(b,'{plays,0,imageMode}','"unknown"'),2);exception when sqlstate 'PT400' then denied:=true;end;if not denied then raise exception 'invalid image format accepted';end if;
+ denied:=false;begin perform public.vikings_save(repeat('a',64),'11111111-1111-4111-8111-111111111111',jsonb_set(b,'{plays,0,line2}','null'),2);exception when sqlstate 'PT400' then denied:=true;end;if not denied then raise exception 'null second line accepted';end if;
  denied:=false;begin perform public.vikings_save(repeat('a',64),'11111111-1111-4111-8111-111111111111',b,1); exception when sqlstate 'PT409' then denied:=true;end;if not denied then raise exception 'stale write accepted';end if;
  denied:=false;begin perform public.vikings_load(repeat('b',64),'11111111-1111-4111-8111-111111111111');exception when sqlstate 'PT404' then denied:=true;end;if not denied then raise exception 'cross-workspace read accepted';end if;
  denied:=false;begin perform public.vikings_save(repeat('c',64),'11111111-1111-4111-8111-111111111111',b,0);exception when sqlstate 'PT403' then denied:=true;end;if not denied then raise exception 'unknown workspace created';end if;
