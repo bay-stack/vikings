@@ -9,13 +9,18 @@ test('reordering preserves number and text across card boundaries',()=>{const b=
 test('backups round trip and reject executable URLs, invalid shape, and oversized text',()=>{const b=blankBook();assert.deepEqual(validateBook(JSON.parse(JSON.stringify(b))),b);b.plays[0].image={data:'javascript:alert(1)',width:10,height:10};assert.throws(()=>validateBook(b));b.plays[0].image=null;b.plays[0].name='x'.repeat(39);assert.throws(()=>validateBook(b));assert.throws(()=>validateBook({...blankBook(),plays:[]}));});
 test('banner colors pick readable text',()=>{assert.equal(contrastColor('#49206e'),'#ffffff');assert.equal(contrastColor('#f4c541'),'#111111');});
 test('each PDF is one US Letter page and requests actual-size printing',()=>{for(const kind of ['wrist','coach']){const b=blankBook();b.plays.forEach((p,i)=>{p.name=i===23?'Right play action rollout pass':'Twins right';});const doc=createPDF(b,kind,jsPDF);assert.equal(doc.getNumberOfPages(),1);assert.equal(doc.internal.pageSize.getWidth(),612);assert.equal(doc.internal.pageSize.getHeight(),792);assert.match(doc.output(),/\/PrintScaling \/None/);}});
-test('Canva crops exactly 326 source pixels, scales doubled exports, and preserves the full diagram',()=>{
+test('Canva fills wristband width, meets the banner, and crops exactly 326 source pixels without distortion',()=>{
   const p={...blankBook().plays[0],imageMode:'canva-326',overlay:true,image:{width:1200,height:1200}};
   const a=imageLayout(p,GEOMETRY.cellWidth,GEOMETRY.cellHeight);
   assert.equal(CANVA.height-CANVA.playHeight,326);
   assert.ok(Math.abs(a.height/a.fullHeight-874/1200)<1e-10);
   assert.ok(Math.abs(a.width/a.height-1200/874)<1e-10);
-  assert.ok(a.y+a.height<=GEOMETRY.cellHeight*.8-2+1e-10);
+  assert.equal(a.x,0);assert.equal(a.width,GEOMETRY.cellWidth);
+  assert.equal(a.y+a.height,GEOMETRY.cellHeight*.8);
+  const coach=imageLayout(p,GEOMETRY.coachWidth/4,GEOMETRY.coachHeight/2);
+  assert.equal(coach.y+coach.height,GEOMETRY.coachHeight/2*.8);
+  assert.ok(coach.x>=0&&coach.x+coach.width<=GEOMETRY.coachWidth/4);
+  assert.ok(Math.abs(coach.width/coach.height-1200/874)<1e-10);
   assert.deepEqual(imageLayout({...p,image:{width:2400,height:2400}},GEOMETRY.cellWidth,GEOMETRY.cellHeight),a);
   assert.equal(defaultImageMode(p.image),'canva-326');assert.equal(defaultImageMode({width:1200,height:874}),'full');
 });

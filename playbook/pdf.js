@@ -1,4 +1,4 @@
-import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-canva';
+import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-canva-edge';
 export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   if(!PDF) throw Error('The PDF tool did not load. Refresh the page and try again.');
   const doc=new PDF({unit:'pt',format:'letter',orientation:'portrait',precision:6,compress:true});

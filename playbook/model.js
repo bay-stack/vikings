@@ -23,7 +23,11 @@ export function defaultImageMode(image) { return image.width===image.height?'can
 export function imageLayout(p,w,h) {
   const cropped=p.imageMode==='canva-326',fraction=cropped?CANVA.playHeight/CANVA.height:1;
   const diagramHeight=h*((p.overlay&&!cropped)?1:.8);
-  const box=fitImage(p.image.width,p.image.height*fraction,2,2,w-4,diagramHeight-4);
+  const inset=cropped?0:2;
+  const box=fitImage(p.image.width,p.image.height*fraction,inset,inset,w-inset*2,diagramHeight-inset*2);
+  // Canva artwork meets the banner and uses the full wristband width.
+  // Keep its proportions; the wider coach cells may have space at the sides.
+  if(cropped)box.y=diagramHeight-box.height;
   return {...box,fullHeight:box.height/fraction,diagramHeight,cropped};
 }
 export function swapPlays(book,from,to) { if(!Number.isInteger(from)||!Number.isInteger(to)||from<0||from>23||to<0||to>23) throw Error('Invalid slot');[book.plays[from],book.plays[to]]=[book.plays[to],book.plays[from]]; }

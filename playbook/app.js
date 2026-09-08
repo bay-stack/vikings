@@ -1,5 +1,5 @@
-import {blankBook,validateBook,emptyPlay,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,GEOMETRY as G} from './model.js?v=20260908-canva';
-import {createPDF} from './pdf.js?v=20260908-canva';
+import {blankBook,validateBook,emptyPlay,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,GEOMETRY as G} from './model.js?v=20260908-canva-edge';
+import {createPDF} from './pdf.js?v=20260908-canva-edge';
 import {rpc,draftStore,draftRead} from './cloud.js';
 const $=id=>document.getElementById(id);
 let book=blankBook(),selected=0,history=[],revision=0,dirty=false,serial=0,timer,saving=null,conflict=false,busy=false,initialized=false,dragFrom=null;
