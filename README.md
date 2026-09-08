@@ -1,0 +1,46 @@
+# Vikings football
+
+The practice plan remains at `/`. The wristband builder is at `/playbook/`.
+
+## Playbook builder
+
+- Upload individual Canva plays as PNG, JPEG, or WebP (up to 20 MB source images). Images are normalized to a maximum 1,200-pixel edge and 320 KB encoded size.
+- Arrange 24 plays in three cards: Outside, Inside top, Inside bottom. Drag to swap or use the slot selector.
+- Edit each play's number, words, banner color, and optional bottom overlay. The default fits the entire image above the banner.
+- Download a one-page Letter wristband PDF: each card's cut rectangle is exactly 310.5 × 144 points, or 4.3125 × 2 inches. Print at Actual size / 100%; verify both 1-inch calibration marks with a ruler.
+- Download a one-page Letter coach PDF with the same groups enlarged.
+- Save named playbooks to the cloud. The private workspace link is the editing credential; keep it private. It is never included in PDFs or JSON backups.
+- Export/import JSON backups. Offline drafts use a Vikings-specific IndexedDB database. Save conflicts preserve local edits and offer cloud reload or a new copy.
+
+## Local development
+
+Requires Node.js 20+.
+
+```sh
+npm ci
+npm run dev
+npm test
+npm run build
+```
+
+Preview: `http://127.0.0.1:4173/playbook/`. The static build is in `dist/`; GitHub Pages can also serve the repository root directly. The PDF library is pinned in package-lock.json and vendored with its license so the editor has no CDN dependency.
+
+## Cloud isolation
+
+`supabase/migrations/202609080001_vikings_playbooks.sql` creates only Vikings objects:
+
+- `vikings_private.workspaces` stores SHA-256 hashes of privately provisioned 256-bit editing keys.
+- `vikings_private.playbooks` stores each workspace's named playbooks and revisions.
+- Three narrowly scoped public RPCs: `vikings_list`, `vikings_load`, `vikings_save`.
+
+Both tables have RLS and no public/client table grants. Anon may execute only these credential-checking RPCs; creation requires an existing workspace key, with a maximum of 30 playbooks per workspace and an 8 MB payload limit. The public Supabase anon key is a client credential, not an editing key. This app does not use MRT staff, roles, authentication, tables, files, or storage buckets. Database infrastructure/quotas are shared.
+
+Workspace provisioning is an administrator operation: generate 32 cryptographically random bytes, hex encode them, and insert only SHA-256 of that UTF-8 hex string into `vikings_private.workspaces.key_hash`. Give the coach `/playbook/#<64-character-key>` privately. The app appends a playbook UUID to links after opening a book. Do not commit the editing key. Losing all private links requires administrator recovery; backups contain plays but no account credentials.
+
+`tests/cloud.sql` verifies RPC round trips, stale revision rejection, workspace isolation, input validation, and denied table access using disposable fixtures rolled back in one transaction. Run with an administrative SQL connection. The deployment already has the migration and one provisioned coach workspace.
+
+## Validation
+
+Node tests cover physical geometry, one-page Letter PDFs, no-scaling viewer preferences, image containment, reordering, import validation, and banner contrast. Generated PDFs were also parsed to verify three exact wristband cut rectangles and all 24 numbers, then rendered and visually inspected with portrait/landscape/wide fixtures. Printer output still depends on the print dialog; the on-paper calibration check is the final sizing check.
+
+No automated browser interaction testing was requested or performed. Keep the private link on the final deployed origin; the local preview address is reachable only on the computer running the development server.

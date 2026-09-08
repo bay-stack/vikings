@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { jsPDF } from 'jspdf';
+import {blankBook,validateBook,swapPlays,fitImage,contrastColor,GEOMETRY} from '../playbook/model.js';
+import {createPDF} from '../playbook/pdf.js';
+test('card measurements and all eight cells preserve the requested inches',()=>{assert.equal(GEOMETRY.cardWidth/72,4.3125);assert.equal(GEOMETRY.cardHeight/72,2);assert.equal(GEOMETRY.cellWidth*4,GEOMETRY.cardWidth);assert.equal(GEOMETRY.cellHeight*2,GEOMETRY.cardHeight);});
+test('portrait and panoramic images stay fully contained without distortion',()=>{for(const [sw,sh] of [[100,1000],[1200,100],[500,500]]){const r=fitImage(sw,sh,10,20,70,55);assert.ok(r.x>=10&&r.y>=20);assert.ok(r.x+r.width<=80.00001&&r.y+r.height<=75.00001);assert.ok(Math.abs(r.width/r.height-sw/sh)<.00001);}});
+test('reordering preserves number and text across card boundaries',()=>{const b=blankBook();b.plays[0].name='Twins right';swapPlays(b,0,23);assert.equal(b.plays[23].name,'Twins right');assert.equal(b.plays[23].number,'1');assert.equal(b.plays[0].number,'24');assert.throws(()=>swapPlays(b,-1,2));});
+test('backups round trip and reject executable URLs, invalid shape, and oversized text',()=>{const b=blankBook();assert.deepEqual(validateBook(JSON.parse(JSON.stringify(b))),b);b.plays[0].image={data:'javascript:alert(1)',width:10,height:10};assert.throws(()=>validateBook(b));b.plays[0].image=null;b.plays[0].name='x'.repeat(39);assert.throws(()=>validateBook(b));assert.throws(()=>validateBook({...blankBook(),plays:[]}));});
+test('banner colors pick readable text',()=>{assert.equal(contrastColor('#49206e'),'#ffffff');assert.equal(contrastColor('#f4c541'),'#111111');});
+test('each PDF is one US Letter page and requests actual-size printing',()=>{for(const kind of ['wrist','coach']){const b=blankBook();b.plays.forEach((p,i)=>{p.name=i===23?'Right play action rollout pass':'Twins right';});const doc=createPDF(b,kind,jsPDF);assert.equal(doc.getNumberOfPages(),1);assert.equal(doc.internal.pageSize.getWidth(),612);assert.equal(doc.internal.pageSize.getHeight(),792);assert.match(doc.output(),/\/PrintScaling \/None/);}});
