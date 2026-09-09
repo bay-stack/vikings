@@ -1,4 +1,4 @@
-import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-simple-editor';
+import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-royal-blue';
 const ascii=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—·]/g,'-').replace(/[^\x20-\x7e]/g,'');
 // Use the same measured lines and point sizes in the editor and exported PDFs.
 export function layoutBannerText(p,w,h,kind,doc){

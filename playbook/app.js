@@ -1,5 +1,5 @@
-import {blankBook,validateBook,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,TEXT_SIZES,GEOMETRY as G} from './model.js?v=20260908-simple-editor';
-import {createPDF,layoutBannerText} from './pdf.js?v=20260908-simple-editor';
+import {blankBook,validateBook,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,TEXT_SIZES,GEOMETRY as G} from './model.js?v=20260908-royal-blue';
+import {createPDF,layoutBannerText} from './pdf.js?v=20260908-royal-blue';
 import {rpc,draftStore,draftRead} from './cloud.js';
 const $=id=>document.getElementById(id);
 let book=blankBook(),selected=0,history=[],revision=0,dirty=false,serial=0,timer,saving=null,conflict=false,busy=false,initialized=false,dragFrom=null;
@@ -113,7 +113,7 @@ for(const [id,prop] of [['playNumber','number'],['playName','name'],['playLine2'
 for(const size of TEXT_SIZES){const option=document.createElement('option');option.value=String(size);option.textContent=`${size} pt`;$('textSize').append(option);}
 $('textSize').onchange=e=>{remember();book.plays[selected].textSize=e.target.value==='auto'?null:Number(e.target.value);changed();};
 $('bookTitle').addEventListener('focus',remember);$('bookTitle').oninput=e=>{book.title=e.target.value;changed();};
-for(const [i,color] of COLORS.entries()){const b=document.createElement('button');b.className='swatch';b.style.background=color;b.dataset.color=color;b.setAttribute('aria-label',['Purple','Navy','Green','Red','Gold','Black'][i]);b.onclick=()=>{remember();book.plays[selected].color=color;changed();renderEditor();};$('swatches').append(b);}
+for(const [i,color] of COLORS.entries()){const b=document.createElement('button');b.className='swatch';b.style.background=color;b.dataset.color=color;b.setAttribute('aria-label',['Purple','Navy','Royal blue','Green','Red','Gold','Black'][i]);b.onclick=()=>{remember();book.plays[selected].color=color;changed();renderEditor();};$('swatches').append(b);}
 for(let i=0;i<24;i++){const o=document.createElement('option');o.value=i;o.textContent=`${i+1} · ${CARD_NAMES[Math.floor(i/8)]}`;$('moveTo').append(o);}$('moveTo').onchange=e=>{const target=Number(e.target.value);remember();swapPlays(book,selected,target);selected=target;changed();renderEditor();};
 $('clearImage').onclick=()=>{if(busy||!initialized||!book.plays[selected].image)return;remember();book.plays[selected].image=null;changed();renderEditor();};$('undo').onclick=()=>{if(!history.length)return;book=JSON.parse(history.pop());changed();renderAll();};
 $('backup').onclick=()=>download(JSON.stringify(book),filename()+'.json','application/json');$('restore').onclick=()=>$('backupInput').click();$('backupInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{if(f.size>8000000)throw Error('This backup is too large.');const candidate=validateBook(JSON.parse(await f.text()));await makeBook(candidate,true);}catch(e){report(e);}finally{$('backupInput').value='';}};
