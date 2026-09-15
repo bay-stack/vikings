@@ -1,5 +1,5 @@
-import {blankBook,validateBook,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,TEXT_SIZES,GEOMETRY as G} from './model.js?v=20260908-royal-blue';
-import {createPDF,layoutBannerText} from './pdf.js?v=20260908-royal-blue';
+import {blankBook,validateBook,CARD_NAMES,COLORS,contrastColor,swapPlays,imageLayout,defaultImageMode,TEXT_SIZES,GEOMETRY as G} from './model.js?v=20260914-excel-fit';
+import {createPDF,layoutBannerText} from './pdf.js?v=20260914-excel-fit';
 import {rpc,draftStore,draftRead} from './cloud.js';
 const $=id=>document.getElementById(id);
 let book=blankBook(),selected=0,history=[],revision=0,dirty=false,serial=0,timer,saving=null,conflict=false,busy=false,initialized=false,dragFrom=null;

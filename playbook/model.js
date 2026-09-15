@@ -1,6 +1,9 @@
 export const CARD_NAMES = ['Outside', 'Inside top', 'Inside bottom'];
 export const COLORS = ['#49206e','#172d49','#4169e1','#176247','#b92f3e','#f4c541','#252332'];
-export const GEOMETRY = Object.freeze({ pageWidth:612,pageHeight:792,cardWidth:310.5,cardHeight:144,cellWidth:77.625,cellHeight:72,cardX:150.75,cardY:[108,288,468],coachX:36,coachY:[100,322,544],coachWidth:540,coachHeight:198 });
+const cellSizeMm=28.18;
+export const WRISTBAND = Object.freeze({windowWidthMm:111,windowHeightMm:56,cellSizeMm,cardWidthMm:cellSizeMm*4,cardHeightMm:cellSizeMm*2});
+const cardWidth=WRISTBAND.cardWidthMm*72/25.4,cardHeight=WRISTBAND.cardHeightMm*72/25.4;
+export const GEOMETRY = Object.freeze({ pageWidth:612,pageHeight:792,cardWidth,cardHeight,cellWidth:cardWidth/4,cellHeight:cardHeight/2,cardX:(612-cardWidth)/2,cardY:[108,288,468],coachX:36,coachY:[100,322,544],coachWidth:540,coachHeight:198 });
 export const CANVA = Object.freeze({width:1200,height:1200,bannerHeight:326,playHeight:874});
 export const TEXT_SIZES = Object.freeze(Array.from({length:16},(_,i)=>4.5+i*.5));
 export function emptyPlay(i) { return { number:String(i+1),name:'',line2:'',textSize:null,color:COLORS[0],overlay:false,imageMode:'full',image:null }; }

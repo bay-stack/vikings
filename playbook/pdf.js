@@ -1,9 +1,10 @@
-import { GEOMETRY as G,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260908-royal-blue';
+import { GEOMETRY as G,WRISTBAND,CARD_NAMES,contrastColor,imageLayout } from './model.js?v=20260914-excel-fit';
 const ascii=s=>s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/[–—·]/g,'-').replace(/[^\x20-\x7e]/g,'');
 // Use the same measured lines and point sizes in the editor and exported PDFs.
 export function layoutBannerText(p,w,h,kind,doc){
   const bannerH=h*.2,available=w*.76-5,manual=p.textSize!=null;
-  let size=manual?p.textSize*(h/G.cellHeight):(kind==='wrist'?7:10);
+  // Wristband sizes are exact points; retain the established coach enlargement.
+  let size=manual?p.textSize*(kind==='wrist'?1:h/72):(kind==='wrist'?7:10);
   doc.setFont('helvetica','bold');doc.setFontSize(size);
   const name=ascii(p.name),line2=ascii(p.line2||'');
   const getLines=()=>line2?[name,line2]:name?doc.splitTextToSize(name,available):[];let lines=getLines();
@@ -20,7 +21,7 @@ export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   const title=ascii(book.title)||'Vikings Playbook';
   doc.text(doc.splitTextToSize(title,540).slice(0,2),36,40);
   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor('#555555');
-  doc.text(kind==='wrist'?'WRISTBAND CARDS  /  4 5/16 in x 2 in  /  PRINT AT 100%':'COACH SHEET  /  ALL 24 PLAYS',36,78);
+  doc.text(kind==='wrist'?`WRISTBAND CARDS  /  ${WRISTBAND.cardWidthMm} x ${WRISTBAND.cardHeightMm} mm  /  PRINT AT 100%`:'COACH SHEET  /  ALL 24 PLAYS',36,78);
   function play(p,x,y,w,h){
     const bannerH=h*.2;
     if(p.image){
@@ -37,7 +38,7 @@ export function createPDF(book,kind,PDF=globalThis.jspdf?.jsPDF) {
   }
   for(let group=0;group<3;group++){
     const wrist=kind==='wrist',x=wrist?G.cardX:G.coachX,y=(wrist?G.cardY:G.coachY)[group],w=wrist?G.cardWidth:G.coachWidth,h=wrist?G.cardHeight:G.coachHeight;
-    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor('#444444');doc.text(`${group+1}  ${CARD_NAMES[group].toUpperCase()}`,x,y-9);
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.setTextColor('#444444');doc.text(`${group+1}  ${CARD_NAMES[group].toUpperCase()}`,x+(wrist?12:0),y-9);
     for(let i=0;i<8;i++) play(book.plays[group*8+i],x+(i%4)*w/4,y+Math.floor(i/4)*h/2,w/4,h/2);
     doc.setDrawColor('#666666');doc.setLineWidth(.3);
     for(let i=1;i<4;i++)doc.line(x+i*w/4,y,x+i*w/4,y+h);doc.line(x,y+h/2,x+w,y+h/2);

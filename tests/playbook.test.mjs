@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { jsPDF } from 'jspdf';
-import {blankBook,validateBook,swapPlays,fitImage,contrastColor,GEOMETRY,imageLayout,defaultImageMode,CANVA} from '../playbook/model.js';
+import {blankBook,validateBook,swapPlays,fitImage,contrastColor,GEOMETRY,WRISTBAND,imageLayout,defaultImageMode,CANVA} from '../playbook/model.js';
 import {createPDF,layoutBannerText} from '../playbook/pdf.js';
-test('card measurements and all eight cells preserve the requested inches',()=>{assert.equal(GEOMETRY.cardWidth/72,4.3125);assert.equal(GEOMETRY.cardHeight/72,2);assert.equal(GEOMETRY.cellWidth*4,GEOMETRY.cardWidth);assert.equal(GEOMETRY.cellHeight*2,GEOMETRY.cardHeight);});
+test('28.18 mm square blocks match the existing Excel inserts and stay on one Letter page',()=>{assert.ok(Math.abs(GEOMETRY.cardWidth/72*25.4-112.72)<1e-10);assert.ok(Math.abs(GEOMETRY.cardHeight/72*25.4-56.36)<1e-10);assert.ok(Math.abs(GEOMETRY.cellWidth/72*25.4-28.18)<1e-10);assert.ok(Math.abs(GEOMETRY.cellHeight/72*25.4-28.18)<1e-10);assert.equal(WRISTBAND.cardWidthMm,WRISTBAND.cellSizeMm*4);assert.equal(WRISTBAND.cardHeightMm,WRISTBAND.cellSizeMm*2);assert.equal(GEOMETRY.cellWidth*4,GEOMETRY.cardWidth);assert.equal(GEOMETRY.cellHeight*2,GEOMETRY.cardHeight);assert.equal(GEOMETRY.cardX+GEOMETRY.cardWidth/2,306);assert.ok(GEOMETRY.cardY[2]+GEOMETRY.cardHeight+9<654);});
 test('portrait and panoramic images stay fully contained without distortion',()=>{for(const [sw,sh] of [[100,1000],[1200,100],[500,500]]){const r=fitImage(sw,sh,10,20,70,55);assert.ok(r.x>=10&&r.y>=20);assert.ok(r.x+r.width<=80.00001&&r.y+r.height<=75.00001);assert.ok(Math.abs(r.width/r.height-sw/sh)<.00001);}});
 test('reordering preserves number and text across card boundaries',()=>{const b=blankBook();b.plays[0].name='Twins right';swapPlays(b,0,23);assert.equal(b.plays[23].name,'Twins right');assert.equal(b.plays[23].number,'1');assert.equal(b.plays[0].number,'24');assert.throws(()=>swapPlays(b,-1,2));});
 test('backups round trip and reject executable URLs, invalid shape, and oversized text',()=>{const b=blankBook();assert.deepEqual(validateBook(JSON.parse(JSON.stringify(b))),b);b.plays[0].image={data:'javascript:alert(1)',width:10,height:10};assert.throws(()=>validateBook(b));b.plays[0].image=null;b.plays[0].name='x'.repeat(39);assert.throws(()=>validateBook(b));assert.throws(()=>validateBook({...blankBook(),plays:[]}));});
@@ -15,8 +15,8 @@ test('Canva fills wristband width, meets the banner, and crops exactly 326 sourc
   assert.equal(CANVA.height-CANVA.playHeight,326);
   assert.ok(Math.abs(a.height/a.fullHeight-874/1200)<1e-10);
   assert.ok(Math.abs(a.width/a.height-1200/874)<1e-10);
-  assert.equal(a.x,0);assert.equal(a.width,GEOMETRY.cellWidth);
-  assert.equal(a.y+a.height,GEOMETRY.cellHeight*.8);
+  assert.ok(Math.abs(a.x)<1e-10);assert.ok(Math.abs(a.width-GEOMETRY.cellWidth)<1e-10);
+  assert.ok(Math.abs(a.y+a.height-GEOMETRY.cellHeight*.8)<1e-10);
   const coach=imageLayout(p,GEOMETRY.coachWidth/4,GEOMETRY.coachHeight/2);
   assert.equal(coach.y+coach.height,GEOMETRY.coachHeight/2*.8);
   assert.ok(coach.x>=0&&coach.x+coach.width<=GEOMETRY.coachWidth/4);
@@ -29,7 +29,7 @@ test('legacy backups preserve full-image and overlay behavior; new fields surviv
   const migrated=validateBook(old);assert.equal(migrated.plays[0].imageMode,'full');assert.equal(migrated.plays[0].line2,'');assert.equal(migrated.plays[0].overlay,true);
   assert.equal(migrated.plays[0].textSize,null);
   migrated.plays[0].image={width:1200,height:1200,data:'data:image/png;base64,AAAA'};
-  const full=imageLayout(migrated.plays[0],GEOMETRY.cellWidth,GEOMETRY.cellHeight);assert.equal(full.height,full.fullHeight);assert.equal(full.diagramHeight,72);
+  const full=imageLayout(migrated.plays[0],GEOMETRY.cellWidth,GEOMETRY.cellHeight);assert.equal(full.height,full.fullHeight);assert.equal(full.diagramHeight,GEOMETRY.cellHeight);
   Object.assign(migrated.plays[0],{imageMode:'canva-326',line2:'Jet sweep'});swapPlays(migrated,0,23);
   const restored=validateBook(JSON.parse(JSON.stringify(migrated)));assert.equal(restored.plays[23].line2,'Jet sweep');assert.equal(restored.plays[23].imageMode,'canva-326');
   for(const invalid of [{line2:'x'.repeat(39)},{line2:null},{imageMode:'unknown'},{imageMode:null}]){const bad=structuredClone(restored);Object.assign(bad.plays[0],invalid);assert.throws(()=>validateBook(bad));}
@@ -45,10 +45,10 @@ test('manual sizes print exactly, coach text scales up, and oversized text is ne
   for(const kind of ['wrist','coach']){
     const w=kind==='wrist'?GEOMETRY.cellWidth:GEOMETRY.coachWidth/4,h=kind==='wrist'?GEOMETRY.cellHeight:GEOMETRY.coachHeight/2;
     const label=layoutBannerText(p,w,h,kind,metrics);
-    assert.equal(label.size,5.5*h/72);assert.equal(label.overflow,false);assert.deepEqual(label.lines,['Green keep','Give red']);
+    assert.equal(label.size,5.5*(kind==='wrist'?1:h/72));assert.equal(label.overflow,false);assert.deepEqual(label.lines,['Green keep','Give red']);
     const doc=createPDF(b,kind,jsPDF),content=doc.internal.pages[1].join('\n');
     assert.ok(content.includes(`/F2 ${label.size} Tf`));
-    assert.ok(content.includes(`${-h*.2} re`));
+    assert.ok(content.includes(`${Number((-h*.2).toFixed(6))} re`));
   }
   p.textSize=8;const tooLarge=layoutBannerText(p,77.625,72,'wrist',metrics);assert.equal(tooLarge.size,8);assert.equal(tooLarge.overflow,true);
   assert.throws(()=>createPDF(b,'wrist',jsPDF),/Choose a smaller text size/);
